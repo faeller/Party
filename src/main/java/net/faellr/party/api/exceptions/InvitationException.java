@@ -1,4 +1,4 @@
-package net.faellr.party.exceptions;
+package net.faellr.party.api.exceptions;
 
 public class InvitationException extends Exception {
     public InvitationException(String message) {

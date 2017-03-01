@@ -1,4 +1,4 @@
-package net.faellr.party.exceptions;
+package net.faellr.party.api.exceptions;
 
 public class PartyException extends Exception {
     public PartyException(String message) {

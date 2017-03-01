@@ -1,8 +1,8 @@
-package net.faellr.party;
+package net.faellr.party.api;
 
 import com.google.common.base.Preconditions;
-import net.faellr.party.exceptions.AlreadyInvitedException;
-import net.faellr.party.exceptions.PartyException;
+import net.faellr.party.api.exceptions.AlreadyInvitedException;
+import net.faellr.party.api.exceptions.PartyException;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
- * Package only {@link Party} implementation suited for usage on one bungeecord server
+ * Package only {@link Party} implementation, suited for usage on one bungeecord server
  */
 class BungeePartyImpl implements Party<ProxiedPlayer> {
 
@@ -31,6 +31,16 @@ class BungeePartyImpl implements Party<ProxiedPlayer> {
     @Override
     public UUID getOwner() {
         return owner;
+    }
+
+    @Override
+    public void registerPlayerAsPending(ProxiedPlayer player) throws AlreadyInvitedException {
+        this.registerPlayerAsPending(player.getUniqueId());
+    }
+
+    @Override
+    public void registerPlayerAsActive(ProxiedPlayer player) throws PartyException {
+        this.registerPlayerAsActive(player.getUniqueId());
     }
 
     @Override

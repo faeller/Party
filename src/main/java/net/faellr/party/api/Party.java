@@ -1,7 +1,7 @@
-package net.faellr.party;
+package net.faellr.party.api;
 
-import net.faellr.party.exceptions.AlreadyInvitedException;
-import net.faellr.party.exceptions.PartyException;
+import net.faellr.party.api.exceptions.AlreadyInvitedException;
+import net.faellr.party.api.exceptions.PartyException;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.*;
@@ -20,6 +20,24 @@ public interface Party<P> {
      * @return the owner
      */
     UUID getOwner();
+
+    /**
+     * Registers a player as pending. This state is achieved when the {@link Party#getOwner()}
+     * invites a player and the invite hasn't been accepted yet
+     *
+     * @param player invitee
+     * @throws AlreadyInvitedException - when an invite is sent while the original one hasn't been accepted yet
+     */
+    void registerPlayerAsPending(P player) throws AlreadyInvitedException;
+
+    /**
+     * Registers a player as active participant in the party. This state is achieved when the {@link Party#getOwner()}
+     * invites a player and the invite is accepted
+     *
+     * @param player invitee
+     * @throws PartyException - when a player is already registered
+     */
+    void registerPlayerAsActive(P player) throws PartyException;
 
     /**
      * Registers a player as pending. This state is achieved when the {@link Party#getOwner()}

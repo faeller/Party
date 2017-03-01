@@ -1,4 +1,4 @@
-package net.faellr.party.exceptions;
+package net.faellr.party.api.exceptions;
 
 public class NotOwnerException extends Exception {
     public NotOwnerException(String message) {
