@@ -73,10 +73,10 @@ public interface Party<P> {
     /**
      * @return {@link Stream<P>} containing all active participants
      */
-    Stream<ProxiedPlayer> getActiveParticipants();
+    Stream<P> getActiveParticipants();
 
     /**
      * @return {@link Stream<P>} containing all pending participants
      */
-    Stream<ProxiedPlayer> getPendingParticipants();
+    Stream<P> getPendingParticipants();
 }
