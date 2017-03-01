@@ -19,7 +19,7 @@ public interface Party<P> {
      *
      * @return the owner
      */
-    UUID getOwner();
+    P getOwner();
 
     /**
      * Registers a player as pending. This state is achieved when the {@link Party#getOwner()}
@@ -40,43 +40,25 @@ public interface Party<P> {
     void registerPlayerAsActive(P player) throws PartyException;
 
     /**
-     * Registers a player as pending. This state is achieved when the {@link Party#getOwner()}
-     * invites a player and the invite hasn't been accepted yet
-     *
-     * @param player invitee
-     * @throws AlreadyInvitedException - when an invite is sent while the original one hasn't been accepted yet
-     */
-    void registerPlayerAsPending(UUID player) throws AlreadyInvitedException;
-
-    /**
-     * Registers a player as active participant in the party. This state is achieved when the {@link Party#getOwner()}
-     * invites a player and the invite is accepted
-     *
-     * @param player invitee
-     * @throws PartyException - when a player is already registered
-     */
-    void registerPlayerAsActive(UUID player) throws PartyException;
-
-    /**
      * Unregisters any connection a player might have to the party. This state is achieved when
      * the player leaves the party or the party is disbanded by the {@link Party#getOwner()}
      *
      * @param player ex-participant
      * @throws PartyException - when the player isn't registered
      */
-    void unregisterPlayer(UUID player) throws PartyException;
+    void unregisterPlayer(P player) throws PartyException;
 
     /**
      * @param player invitee
      * @return whether the player is registered as pending to this party
      */
-    boolean isPending(UUID player);
+    boolean isPending(P player);
 
     /**
      * @param player participant
      * @return whether the player is registered as active participant in this party
      */
-    boolean isActive(UUID player);
+    boolean isActive(P player);
 
     /**
      * Sends all {@link Party#getActiveParticipants()} to the minecraft server registered as {@param serverName}

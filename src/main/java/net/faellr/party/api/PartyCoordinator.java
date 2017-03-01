@@ -3,10 +3,8 @@ package net.faellr.party.api;
 import net.faellr.party.api.exceptions.NotOwnerException;
 import net.faellr.party.api.exceptions.PartyException;
 
-import java.util.UUID;
-
 /**
- * Singleton coordinating the usage of {@link Party} instances
+ * Singleton coordinating the usage of {@link Party} instances and other related party functionality
  *
  * @param <P> participant type
  */
@@ -18,7 +16,7 @@ public interface PartyCoordinator<P> {
      * @param owner the party's initiator
      * @throws PartyException when {@param owner} is in a party
      */
-    Party<P> createParty(UUID owner) throws PartyException;
+    Party<P> createParty(P owner) throws PartyException;
 
     /**
      * Deletes a party by removing all mappings and destroying its instance
@@ -27,10 +25,20 @@ public interface PartyCoordinator<P> {
      * @throws PartyException - when {@param owner} is not in a party
      * @throws NotOwnerException - when {@param owner} is not the owner of the party he is in
      */
-    void disbandParty(UUID owner) throws PartyException, NotOwnerException;
+    void disbandParty(P owner) throws PartyException, NotOwnerException;
 
     /**
      * @return the {@link Party} instance the {@param activeParticipant} is in
      */
-    Party<P> getParty(UUID activeParticipant);
+    Party<P> getParty(P activeParticipant);
+
+    /**
+     * @return whether {@þaram player} has party requests enabled
+     */
+    boolean hasPartyRequestsEnabled(P player);
+
+    /**
+     * Toggles the {@param player} preference on party requests
+     */
+    void togglePartyRequests(P player);
 }

@@ -22,66 +22,56 @@ class BungeePartyImpl implements Party<ProxiedPlayer> {
     private Set<UUID> activeParticipants;
     private Set<UUID> pendingParticipants;
 
-    BungeePartyImpl(UUID owner) {
-        this.owner = owner;
+    BungeePartyImpl(ProxiedPlayer owner) {
+        this.owner = owner.getUniqueId();
         this.activeParticipants = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
         this.pendingParticipants = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
     }
 
     @Override
-    public UUID getOwner() {
-        return owner;
+    public ProxiedPlayer getOwner() {
+        return ProxyServer.getInstance().getPlayer(owner);
     }
 
     @Override
     public void registerPlayerAsPending(ProxiedPlayer player) throws AlreadyInvitedException {
-        this.registerPlayerAsPending(player.getUniqueId());
+        Preconditions.checkNotNull(player);
+
+        if(pendingParticipants.contains(player.getUniqueId()))
+            throw new AlreadyInvitedException("Player '"+player.getName()+"' has already been registered as pending participant");
+
+        pendingParticipants.add(player.getUniqueId());
     }
 
     @Override
     public void registerPlayerAsActive(ProxiedPlayer player) throws PartyException {
-        this.registerPlayerAsActive(player.getUniqueId());
+        Preconditions.checkNotNull(player);
+
+        if(activeParticipants.contains(player.getUniqueId()))
+            throw new PartyException("Player with uuid '"+player.getName()+"' is already registered as active participant");
+
+        pendingParticipants.remove(player.getUniqueId());
+        activeParticipants.add(player.getUniqueId());
     }
 
     @Override
-    public void registerPlayerAsPending(UUID player) throws AlreadyInvitedException {
+    public void unregisterPlayer(ProxiedPlayer player) throws PartyException {
         Preconditions.checkNotNull(player);
 
-        if(pendingParticipants.contains(player))
-            throw new AlreadyInvitedException("Player with uuid '"+player+"' has already been registered as pending participant");
-
-        pendingParticipants.add(player);
-    }
-
-    @Override
-    public void registerPlayerAsActive(UUID player) throws PartyException {
-        Preconditions.checkNotNull(player);
-
-        if(activeParticipants.contains(player))
-            throw new PartyException("Player with uuid '"+player+"' is already registered as active participant");
-
-        pendingParticipants.remove(player);
-        activeParticipants.add(player);
-    }
-
-    @Override
-    public void unregisterPlayer(UUID player) throws PartyException {
-        Preconditions.checkNotNull(player);
-
-        if(!activeParticipants.remove(player) || !pendingParticipants.remove(player))
+        if(!activeParticipants.remove(player.getUniqueId()) || !pendingParticipants.remove(player.getUniqueId()))
             throw new PartyException("Player with uuid '"+player+"' is neither an active nor pending participant");
     }
 
     @Override
-    public boolean isPending(UUID player) {
+    public boolean isPending(ProxiedPlayer player) {
         Preconditions.checkNotNull(player);
-        return activeParticipants.contains(player);
+        return activeParticipants.contains(player.getUniqueId());
     }
 
     @Override
-    public boolean isActive(UUID player) {
+    public boolean isActive(ProxiedPlayer player) {
         Preconditions.checkNotNull(player);
-        return activeParticipants.contains(player);
+        return activeParticipants.contains(player.getUniqueId());
     }
 
     @Override
