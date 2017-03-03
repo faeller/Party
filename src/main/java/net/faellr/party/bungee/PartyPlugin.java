@@ -10,6 +10,7 @@ public class PartyPlugin extends Plugin {
     public void onEnable() {
         PartyPlugin.instance = this;
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new PartyCommand());
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new PartyListener());
     }
 
     public static PartyPlugin getInstance() {

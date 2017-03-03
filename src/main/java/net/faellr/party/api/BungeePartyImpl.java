@@ -2,7 +2,10 @@ package net.faellr.party.api;
 
 import com.google.common.base.Preconditions;
 import net.faellr.party.api.exceptions.PartyException;
+import net.faellr.party.bungee.PartyPlugin;
+import net.faellr.party.bungee.protocol.OutResourcepackPacket;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -10,6 +13,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -25,6 +29,7 @@ class BungeePartyImpl implements Party<ProxiedPlayer> {
         this.owner = owner.getUniqueId();
         this.activeParticipants = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
         this.pendingParticipants = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+        this.activeParticipants.add(owner.getUniqueId());
     }
 
     @Override
@@ -61,19 +66,25 @@ class BungeePartyImpl implements Party<ProxiedPlayer> {
 
         pendingParticipants.remove(player.getUniqueId());
         activeParticipants.add(player.getUniqueId());
+        BungeePartyCoordinator.getInstance().registerPlayerToParty(this, player);
     }
 
     @Override
     public void unregisterPlayer(ProxiedPlayer player) {
         Preconditions.checkNotNull(player);
+
+        if(!isActive(player))
+            return;
+
         pendingParticipants.remove(player.getUniqueId());
         activeParticipants.remove(player.getUniqueId());
+        BungeePartyCoordinator.getInstance().unregisterPlayer(player);
     }
 
     @Override
     public boolean isPending(ProxiedPlayer player) {
         Preconditions.checkNotNull(player);
-        return activeParticipants.contains(player.getUniqueId());
+        return pendingParticipants.contains(player.getUniqueId());
     }
 
     @Override
@@ -92,7 +103,8 @@ class BungeePartyImpl implements Party<ProxiedPlayer> {
     @Override
     public void sendResourcepackToParticipants(String resourcepackURI) {
         Preconditions.checkNotNull(resourcepackURI);
-        // TODO: implement
+        OutResourcepackPacket packet = new OutResourcepackPacket(resourcepackURI);
+        getActiveParticipants().forEach(participant -> participant.unsafe().sendPacket(packet));
     }
 
     @Override
@@ -105,5 +117,14 @@ class BungeePartyImpl implements Party<ProxiedPlayer> {
     public Stream<ProxiedPlayer> getPendingParticipants() {
         return pendingParticipants.stream()
                 .map(ProxyServer.getInstance()::getPlayer);
+    }
+
+    @Override
+    public String toString() {
+        return "BungeePartyImpl{" +
+                "owner=" + owner +
+                ", activeParticipants=" + activeParticipants +
+                ", pendingParticipants=" + pendingParticipants +
+                '}';
     }
 }

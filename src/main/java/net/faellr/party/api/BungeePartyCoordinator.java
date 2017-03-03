@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see PartyCoordinator
  */
 public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
-    private final Map<UUID, UUID> participantParty = new ConcurrentHashMap<>(); // <participantUUID, partyUUID>
+    private final Map<UUID, UUID> participants = new ConcurrentHashMap<>(); // <participantUUID, partyUUID>
     private final Map<UUID, Party<ProxiedPlayer>> registry = new ConcurrentHashMap<>(); // <partyUUID, party>
     private final PersistenceAccessor persistenceAccessor = new ConfigPersistenceAccessor(new File(PartyPlugin.getInstance().getDataFolder(), "persistence.yml"));
 
@@ -34,13 +34,13 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     public Party<ProxiedPlayer> createParty(ProxiedPlayer owner) {
         Preconditions.checkNotNull(owner);
 
-        if(participantParty.containsKey(owner.getUniqueId()))
+        if(participants.containsKey(owner.getUniqueId()))
             throw new PartyException(owner.getName()+" already is in a party");
 
         UUID partyUUID = UUID.randomUUID();
         Party<ProxiedPlayer> party = new BungeePartyImpl(owner);
 
-        participantParty.put(owner.getUniqueId(), partyUUID);
+        participants.put(owner.getUniqueId(), partyUUID);
         registry.put(partyUUID, party);
 
         return party;
@@ -69,7 +69,38 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
      */
     @Override
     public boolean isInParty(ProxiedPlayer player) {
-        return participantParty.containsKey(player.getUniqueId());
+        return participants.containsKey(player.getUniqueId());
+    }
+
+    /**
+     * @see PartyCoordinator#registerPlayerToParty(Party, Object)
+     */
+    @Override
+    public void registerPlayerToParty(Party<ProxiedPlayer> party, ProxiedPlayer futureParticipant) {
+        Preconditions.checkNotNull(party);
+        Preconditions.checkNotNull(futureParticipant);
+
+        if(participants.containsKey(futureParticipant.getUniqueId()))
+            return;
+
+        party.registerPlayerAsActive(futureParticipant);
+        UUID partyUUID = participants.get(party.getOwner().getUniqueId());
+        participants.put(futureParticipant.getUniqueId(), partyUUID);
+    }
+
+    /**
+     * @see PartyCoordinator#unregisterPlayer(Object)
+     */
+    @Override
+    public void unregisterPlayer(ProxiedPlayer player) {
+        Preconditions.checkNotNull(player);
+
+        Party<ProxiedPlayer> party = getParty(player);
+        if(party == null)
+            return;
+
+        party.unregisterPlayer(player);
+        participants.remove(player.getUniqueId());
     }
 
     /**
@@ -78,7 +109,7 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     @Override
     public Party<ProxiedPlayer> getParty(ProxiedPlayer activeParticipant) {
         Preconditions.checkNotNull(activeParticipant);
-        UUID partyUUID = participantParty.get(activeParticipant.getUniqueId());
+        UUID partyUUID = participants.get(activeParticipant.getUniqueId());
 
         if(partyUUID == null)
             return null;

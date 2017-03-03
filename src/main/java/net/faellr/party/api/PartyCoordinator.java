@@ -27,6 +27,23 @@ public interface PartyCoordinator<P> {
     Party<P> getParty(P activeParticipant);
 
     /**
+     * Registers a player as active participant in the party. This state is achieved when the {@link Party#getOwner()}
+     * invites a player and the invite is accepted
+     *
+     * @param party
+     * @param futureParticipant
+     */
+    void registerPlayerToParty(Party<P> party, P futureParticipant);
+
+    /**
+     * Unregisters any connection a player might have to a party. This state is achieved when
+     * the player leaves the party or the party is disbanded by the {@link Party#getOwner()}
+     *
+     * @param player ex-participant
+     */
+    void unregisterPlayer(P player);
+
+    /**
      * @return whether {@þaram player} is actively registered to a party
      */
     boolean isInParty(P player);

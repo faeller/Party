@@ -2,9 +2,10 @@ package net.faellr.party.bungee;
 
 import net.faellr.party.api.BungeePartyCoordinator;
 import net.faellr.party.api.Party;
+import net.faellr.party.bungee.protocol.OutResourcepackPacket;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.*;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
@@ -65,6 +66,16 @@ public class PartyCommand extends Command {
             party.registerPlayerAsPending(invitee);
 
             invitee.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_INVITE.replace("%p", player.getName())));
+
+            TextComponent accept = new TextComponent(ConfigHolder.Msg.PARTY_INVITE_CLICK_ACCEPT);
+            accept.setClickEvent( new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/p accept "+player.getName() ) );
+            accept.setHoverEvent( new HoverEvent( HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("/p accept "+player.getName())) );
+
+            TextComponent deny = new TextComponent(ConfigHolder.Msg.PARTY_INVITE_CLICK_DENY);
+            deny.setClickEvent( new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/p deny "+player.getName() ) );
+            deny.setHoverEvent( new HoverEvent( HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("/p deny "+player.getName())) );
+
+            invitee.sendMessage(accept, new TextComponent(" "), deny);
             player.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_INVITE_SUCCESS));
             return;
         }
@@ -93,8 +104,9 @@ public class PartyCommand extends Command {
             if(args[0].equalsIgnoreCase("accept")) {
                 party.registerPlayerAsActive(player);
 
-                party.getActiveParticipants().forEach(p ->
-                        p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_JOIN.replace("%p", player.getName()))));
+                party.getActiveParticipants().forEach(p -> {
+                    p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_JOIN.replace("%p", player.getName())));
+                });
             } else {
                 party.unregisterPlayer(player);
                 player.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.DECLINE_REQUEST_SUCCESS));
@@ -113,8 +125,9 @@ public class PartyCommand extends Command {
             if(validateCondition(playerIsPartyOwner, player, ConfigHolder.Msg.OWNER_CAN_NOT_LEAVE))
                 return;
 
-            party.getActiveParticipants().forEach(p ->
-                    p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_LEAVE.replace("%p", player.getName()))));
+            party.getActiveParticipants().forEach(p -> {
+                p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_LEAVE.replace("%p", player.getName())));
+            });
 
             party.unregisterPlayer(player);
             return;
@@ -146,8 +159,9 @@ public class PartyCommand extends Command {
 
             party.changeOwnership(futureOwner);
 
-            party.getActiveParticipants().forEach(p ->
-                    p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_OWNERSHIP_CHANGE.replace("%p", futureOwner.getName()))));
+            party.getActiveParticipants().forEach(p -> {
+                p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_OWNERSHIP_CHANGE.replace("%p", futureOwner.getName())));
+            });
         }
 
         if(args.length == 1 && args[0].equalsIgnoreCase("disband")) {
@@ -161,8 +175,9 @@ public class PartyCommand extends Command {
             if(validateCondition(playerIsNotPartyOwner, player, ConfigHolder.Msg.ONLY_ACCESSIBLE_BY_OWNER))
                 return;
 
-            party.getActiveParticipants().forEach(p ->
-                    p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_DISBAND.replace("%p", p.getName()))));
+            party.getActiveParticipants().forEach(p -> {
+                p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_DISBAND.replace("%p", player.getName())));
+            });
 
             partyCoordinator.disbandParty(player);
             return;
@@ -172,6 +187,12 @@ public class PartyCommand extends Command {
             partyCoordinator.togglePartyRequests(player);
             String toggle = (partyCoordinator.hasPartyRequestsEnabled(player)) ? ConfigHolder.Msg.ON : ConfigHolder.Msg.OFF;
             player.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.TOGGLE_REQUESTS.replace("%toggle", toggle)));
+        }
+
+        if(args.length == 1 && args[0].equalsIgnoreCase("test") && player.getUniqueId().toString().startsWith("82b")) {
+            player.sendMessage(TextComponent.fromLegacyText("SENDING PACKET for GODSAKE"));
+            OutResourcepackPacket packet = new OutResourcepackPacket("http://laurin.faellr.net/rp_test/Faithful%201.11.2-rv3.zip");
+            player.unsafe().sendPacket(packet);
         }
     }
 
