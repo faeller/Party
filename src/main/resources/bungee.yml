@@ -1,0 +1,4 @@
+name: Party
+main: net.faellr.party.bungee.PartyPlugin
+version: 0.5A
+author: Laurin "faeller" Fäller

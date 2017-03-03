@@ -1,9 +1,6 @@
 package net.faellr.party.api;
 
 import com.google.common.base.Preconditions;
-import net.faellr.party.api.exceptions.NotOwnerException;
-import net.faellr.party.api.exceptions.PartyException;
-import net.faellr.party.api.exceptions.PartyRuntimeException;
 import net.faellr.party.bungee.PartyPlugin;
 import net.faellr.party.persistence.ConfigPersistenceAccessor;
 import net.faellr.party.persistence.PersistenceAccessor;
@@ -26,20 +23,20 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     private final Map<UUID, UUID> participantParty = new ConcurrentHashMap<>(); // <participantUUID, partyUUID>
     private final Map<UUID, Party<ProxiedPlayer>> registry = new ConcurrentHashMap<>(); // <partyUUID, party>
-    private final PersistenceAccessor persistenceAccessor = new ConfigPersistenceAccessor(new File(PartyPlugin.getInstance().getDataFolder(), "config.yml"));
+    private final PersistenceAccessor persistenceAccessor = new ConfigPersistenceAccessor(new File(PartyPlugin.getInstance().getDataFolder(), "persistence.yml"));
 
     /**
      * Creates and registers a {@link Party<ProxiedPlayer>}
      *
      * @param owner the party's initiator
-     * @throws PartyException when {@param owner} is in a party
+     * @return newly instantiated {@link Party<ProxiedPlayer>}; null if the owner already is in a party
      */
     @Override
-    public Party<ProxiedPlayer> createParty(ProxiedPlayer owner) throws PartyException {
+    public Party<ProxiedPlayer> createParty(ProxiedPlayer owner) {
         Preconditions.checkNotNull(owner);
 
         if(participantParty.containsKey(owner.getUniqueId()))
-            throw new PartyException("Player '"+owner.getName()+"' already is in a party");
+            return null;
 
         UUID partyUUID = UUID.randomUUID();
         Party<ProxiedPlayer> party = new BungeePartyImpl(owner);
@@ -54,30 +51,29 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
      * Deletes a party by removing all mappings and destroying its instance
      *
      * @param owner the party's initiator
-     * @throws PartyException - when {@param owner} is not in a party
-     * @throws NotOwnerException - when {@param owner} is not the owner of the party he is in
      */
     @Override
-    public void disbandParty(ProxiedPlayer owner) throws PartyException, NotOwnerException {
+    public void disbandParty(ProxiedPlayer owner) {
         Preconditions.checkNotNull(owner);
         Party<ProxiedPlayer> party = getParty(owner);
 
         if(party == null)
-            throw new PartyException("Player with uuid '"+owner+"' is not in a party");
+            return;
 
         if(!party.getOwner().getUniqueId().equals(owner.getUniqueId()))
-            throw new NotOwnerException("Player with uuid '"+owner+"' is not the owner of the party and can not disband it");
+            return;
 
-        party.getActiveParticipants().forEach(player -> {
-            try {
-                party.unregisterPlayer(player);
-            } catch (PartyException e) {
-                throw new PartyRuntimeException("Exception while trying to unregister a player. " +
-                        "Please contact the developer with this message", e);
-            }
+        party.getActiveParticipants().forEach(party::unregisterPlayer);
 
-            // TODO: implement object destruction
-        });
+        // TODO: implement object destruction
+    }
+
+    /**
+     * @return whether {@þaram player} is actively registered to a party
+     */
+    @Override
+    public boolean isInParty(ProxiedPlayer player) {
+        return participantParty.containsKey(player.getUniqueId());
     }
 
     /**
@@ -87,11 +83,15 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     public Party<ProxiedPlayer> getParty(ProxiedPlayer activeParticipant) {
         Preconditions.checkNotNull(activeParticipant);
         UUID partyUUID = participantParty.get(activeParticipant.getUniqueId());
+
+        if(partyUUID == null)
+            return null;
+
         Party<ProxiedPlayer> party = registry.get(partyUUID);
         return party;
     }
 
-    // TODO: cache persistenceAccessor values 
+    // TODO: cache persistenceAccessor values
 
     /**
      * Toggles the {@param player} preference on party requests

@@ -36,8 +36,13 @@ public class ConfigPersistenceAccessor implements PersistenceAccessor {
     }
 
     @Override
-    public String readString(String key) {
+    public String getString(String key) {
         return config.getString(key);
+    }
+
+    @Override
+    public boolean containsString(String key) {
+        return config.contains(key);
     }
 
     @Override

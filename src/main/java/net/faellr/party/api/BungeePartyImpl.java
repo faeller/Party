@@ -1,8 +1,6 @@
 package net.faellr.party.api;
 
 import com.google.common.base.Preconditions;
-import net.faellr.party.api.exceptions.AlreadyInvitedException;
-import net.faellr.party.api.exceptions.PartyException;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -34,32 +32,31 @@ class BungeePartyImpl implements Party<ProxiedPlayer> {
     }
 
     @Override
-    public void registerPlayerAsPending(ProxiedPlayer player) throws AlreadyInvitedException {
+    public void registerPlayerAsPending(ProxiedPlayer player) {
         Preconditions.checkNotNull(player);
 
-        if(pendingParticipants.contains(player.getUniqueId()))
-            throw new AlreadyInvitedException("Player '"+player.getName()+"' has already been registered as pending participant");
+        if(isPending(player))
+            return;
 
         pendingParticipants.add(player.getUniqueId());
     }
 
     @Override
-    public void registerPlayerAsActive(ProxiedPlayer player) throws PartyException {
+    public void registerPlayerAsActive(ProxiedPlayer player) {
         Preconditions.checkNotNull(player);
 
-        if(activeParticipants.contains(player.getUniqueId()))
-            throw new PartyException("Player with uuid '"+player.getName()+"' is already registered as active participant");
+        if(isActive(player))
+            return;
 
         pendingParticipants.remove(player.getUniqueId());
         activeParticipants.add(player.getUniqueId());
     }
 
     @Override
-    public void unregisterPlayer(ProxiedPlayer player) throws PartyException {
+    public void unregisterPlayer(ProxiedPlayer player) {
         Preconditions.checkNotNull(player);
-
-        if(!activeParticipants.remove(player.getUniqueId()) || !pendingParticipants.remove(player.getUniqueId()))
-            throw new PartyException("Player with uuid '"+player+"' is neither an active nor pending participant");
+        pendingParticipants.remove(player.getUniqueId());
+        activeParticipants.remove(player.getUniqueId());
     }
 
     @Override

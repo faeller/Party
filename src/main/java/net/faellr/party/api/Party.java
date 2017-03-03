@@ -1,10 +1,7 @@
 package net.faellr.party.api;
 
-import net.faellr.party.api.exceptions.AlreadyInvitedException;
-import net.faellr.party.api.exceptions.PartyException;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -26,27 +23,24 @@ public interface Party<P> {
      * invites a player and the invite hasn't been accepted yet
      *
      * @param player invitee
-     * @throws AlreadyInvitedException - when an invite is sent while the original one hasn't been accepted yet
      */
-    void registerPlayerAsPending(P player) throws AlreadyInvitedException;
+    void registerPlayerAsPending(P player);
 
     /**
      * Registers a player as active participant in the party. This state is achieved when the {@link Party#getOwner()}
      * invites a player and the invite is accepted
      *
      * @param player invitee
-     * @throws PartyException - when a player is already registered
      */
-    void registerPlayerAsActive(P player) throws PartyException;
+    void registerPlayerAsActive(P player);
 
     /**
      * Unregisters any connection a player might have to the party. This state is achieved when
      * the player leaves the party or the party is disbanded by the {@link Party#getOwner()}
      *
      * @param player ex-participant
-     * @throws PartyException - when the player isn't registered
      */
-    void unregisterPlayer(P player) throws PartyException;
+    void unregisterPlayer(P player);
 
     /**
      * @param player invitee

@@ -12,7 +12,8 @@ import java.util.UUID;
  */
 public interface PersistenceAccessor {
     void setString(String key, String message);
-    String readString(String key);
+    String getString(String key);
+    boolean containsString(String key);
 
     void setPartyRequestsEnabled(UUID uuid, boolean toggle);
     boolean hasPartyRequestsEnabled(UUID uuid);
