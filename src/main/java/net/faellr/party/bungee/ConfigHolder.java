@@ -9,7 +9,7 @@ import java.io.File;
  * Package visibility constant class. Mainly used for Messages.
  */
 class ConfigHolder {
-    public static class Msg {
+    static class Msg {
         private static final ConfigPersistenceAccessor ACCESSOR = new ConfigPersistenceAccessor(new File(PartyPlugin.getInstance().getDataFolder(), "messages.yml"));
 
         public static final String HELP_TOPIC = createMessage("HELP_TOPIC", "" +
@@ -52,6 +52,12 @@ class ConfigHolder {
         public static final String PARTY_LEAVE = createMessage("PARTY_LEAVE", "&b%p hat die Party verlassen.");
 
         public static final String OWNER_CAN_NOT_LEAVE = createMessage("OWNER_CAN_NOT_LEAVE", "Löse die Party auf um sie zu verlassen.");
+
+        public static final String ALREADY_OWNER = createMessage("ALREADY_OWNER", "&cDu bist bereits Besitzer der Party.");
+
+        public static final String PLAYER_NOT_PARTICIPANT = createMessage("PLAYER_NOT_PARTICIPANT", "&cDer angegebene Spieler ist nicht Teil deiner Party.");
+
+        public static final String PARTY_OWNERSHIP_CHANGE = createMessage("PARTY_OWNERSHIP_CHANGE", "&b%p ist der neue Besitzer der Party.");
 
         public static final String PARTY_DISBAND = createMessage("PARTY_DISBAND", "&bDie Party wurde durch %p aufgelöst.");
 

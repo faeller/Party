@@ -19,6 +19,13 @@ public interface Party<P> {
     P getOwner();
 
     /**
+     * Changes the {@link Party#getOwner()}
+     *
+     * @param newOwner future owner
+     */
+    void changeOwnership(P newOwner);
+
+    /**
      * Registers a player as pending. This state is achieved when the {@link Party#getOwner()}
      * invites a player and the invite hasn't been accepted yet
      *

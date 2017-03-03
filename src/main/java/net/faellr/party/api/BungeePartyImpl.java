@@ -1,6 +1,7 @@
 package net.faellr.party.api;
 
 import com.google.common.base.Preconditions;
+import net.faellr.party.api.exceptions.PartyException;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -29,6 +30,16 @@ class BungeePartyImpl implements Party<ProxiedPlayer> {
     @Override
     public ProxiedPlayer getOwner() {
         return ProxyServer.getInstance().getPlayer(owner);
+    }
+
+    @Override
+    public void changeOwnership(ProxiedPlayer newOwner) {
+        Preconditions.checkNotNull(newOwner);
+
+        if(!isActive(newOwner))
+            throw new PartyException(newOwner.getName()+" is not an active participant to the party");
+
+        this.owner = newOwner.getUniqueId();
     }
 
     @Override

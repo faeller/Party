@@ -1,7 +1,7 @@
 package net.faellr.party.persistence;
 
 
-import net.faellr.party.api.exceptions.PartyRuntimeException;
+import net.faellr.party.api.exceptions.PartyException;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -25,7 +25,7 @@ public class ConfigPersistenceAccessor implements PersistenceAccessor {
 
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
         } catch (IOException e) {
-            throw new PartyRuntimeException("Exception while doing IO. Please contact the developer with this message", e);
+            throw new PartyException("Exception while doing IO. Please contact the developer with this message", e);
         }
     }
 
@@ -62,7 +62,7 @@ public class ConfigPersistenceAccessor implements PersistenceAccessor {
         try {
             ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, file);
         } catch (IOException e) {
-            throw new PartyRuntimeException("Exception while doing IO. Please contact the developer with this message", e);
+            throw new PartyException("Exception while doing IO. Please contact the developer with this message", e);
         }
     }
 }

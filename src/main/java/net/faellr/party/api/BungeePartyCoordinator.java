@@ -1,6 +1,7 @@
 package net.faellr.party.api;
 
 import com.google.common.base.Preconditions;
+import net.faellr.party.api.exceptions.PartyException;
 import net.faellr.party.bungee.PartyPlugin;
 import net.faellr.party.persistence.ConfigPersistenceAccessor;
 import net.faellr.party.persistence.PersistenceAccessor;
@@ -12,13 +13,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Singleton coordinating the usage of {@link Party} instances
+ * Singleton coordinating the usage of {@link Party<ProxiedPlayer>} instances
  *
  * The mapping is simple: Everytime a party is created it is mapped to a random UUID.
  * All {@link Party#getActiveParticipants()} are also mapped to this random UUID.
- *
  * The retrieval of a participant's Party is then as simple as using the participant's UUID
  * to get the party's UUID and then using the party's UUID to get the {@link Party} instance
+ *
+ * @see PartyCoordinator
  */
 public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     private final Map<UUID, UUID> participantParty = new ConcurrentHashMap<>(); // <participantUUID, partyUUID>
@@ -26,17 +28,14 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     private final PersistenceAccessor persistenceAccessor = new ConfigPersistenceAccessor(new File(PartyPlugin.getInstance().getDataFolder(), "persistence.yml"));
 
     /**
-     * Creates and registers a {@link Party<ProxiedPlayer>}
-     *
-     * @param owner the party's initiator
-     * @return newly instantiated {@link Party<ProxiedPlayer>}; null if the owner already is in a party
+     * @see PartyCoordinator#createParty(Object)
      */
     @Override
     public Party<ProxiedPlayer> createParty(ProxiedPlayer owner) {
         Preconditions.checkNotNull(owner);
 
         if(participantParty.containsKey(owner.getUniqueId()))
-            return null;
+            throw new PartyException(owner.getName()+" already is in a party");
 
         UUID partyUUID = UUID.randomUUID();
         Party<ProxiedPlayer> party = new BungeePartyImpl(owner);
@@ -48,9 +47,7 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     }
 
     /**
-     * Deletes a party by removing all mappings and destroying its instance
-     *
-     * @param owner the party's initiator
+     * @see PartyCoordinator#disbandParty(Object)
      */
     @Override
     public void disbandParty(ProxiedPlayer owner) {
@@ -58,18 +55,17 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
         Party<ProxiedPlayer> party = getParty(owner);
 
         if(party == null)
-            return;
+            throw new PartyException(owner.getName()+" is not in a party");
 
         if(!party.getOwner().getUniqueId().equals(owner.getUniqueId()))
-            return;
-
-        party.getActiveParticipants().forEach(party::unregisterPlayer);
+            throw new PartyException(owner.getName()+" is not owner of the party");
 
         // TODO: implement object destruction
+        party.getActiveParticipants().forEach(party::unregisterPlayer);
     }
 
     /**
-     * @return whether {@þaram player} is actively registered to a party
+     * @see PartyCoordinator#isInParty(Object)
      */
     @Override
     public boolean isInParty(ProxiedPlayer player) {
@@ -77,7 +73,7 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     }
 
     /**
-     * @return the {@link Party} instance the {@param activeParticipant} is in
+     * @see PartyCoordinator#getParty(Object)
      */
     @Override
     public Party<ProxiedPlayer> getParty(ProxiedPlayer activeParticipant) {
@@ -87,14 +83,13 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
         if(partyUUID == null)
             return null;
 
-        Party<ProxiedPlayer> party = registry.get(partyUUID);
-        return party;
+        return registry.get(partyUUID);
     }
 
     // TODO: cache persistenceAccessor values
 
     /**
-     * Toggles the {@param player} preference on party requests
+     * @see PartyCoordinator#togglePartyRequests(Object)
      */
     @Override
     public void togglePartyRequests(ProxiedPlayer player) {
@@ -102,7 +97,7 @@ public class BungeePartyCoordinator implements PartyCoordinator<ProxiedPlayer> {
     }
 
     /**
-     * @return whether {@param player} has party requests enabled
+     * @see PartyCoordinator#hasPartyRequestsEnabled(Object)
      */
     @Override
     public boolean hasPartyRequestsEnabled(ProxiedPlayer player) {

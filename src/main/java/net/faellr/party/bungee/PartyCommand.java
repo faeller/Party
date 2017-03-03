@@ -81,7 +81,8 @@ public class PartyCommand extends Command {
             boolean playerEqualsInviter = player.getUniqueId().equals(inviter.getUniqueId());
             boolean inviterNotInParty = (party == null);
 
-            validateCondition(playerEqualsInviter || inviterNotInParty, player, ConfigHolder.Msg.NOT_REQUESTED);
+            if(validateCondition(playerEqualsInviter || inviterNotInParty, player, ConfigHolder.Msg.NOT_REQUESTED))
+                return;
 
             boolean inviterNotOwner = !party.getOwner().getUniqueId().equals(inviter.getUniqueId());
             boolean notInvited = !party.isPending(player);
@@ -117,6 +118,36 @@ public class PartyCommand extends Command {
 
             party.unregisterPlayer(player);
             return;
+        }
+
+        if(args.length == 2 && args[0].equalsIgnoreCase("owner")) {
+            Party<ProxiedPlayer> party = partyCoordinator.getParty(player);
+            ProxiedPlayer futureOwner = ProxyServer.getInstance().getPlayer(args[1]);
+
+            boolean playerNotOnline = (futureOwner == null);
+            if(validateCondition(playerNotOnline, player, ConfigHolder.Msg.NOT_ONLINE))
+                return;
+
+            boolean playerEqualsFutureOwner = player.getUniqueId().equals(futureOwner.getUniqueId());
+            if(validateCondition(playerEqualsFutureOwner, player, ConfigHolder.Msg.ALREADY_OWNER))
+                return;
+
+            boolean playerNotInAParty = (party == null);
+            if(validateCondition(playerNotInAParty, player, ConfigHolder.Msg.NOT_IN_A_PARTY))
+                return;
+
+            boolean playerIsNotPartyOwner = !party.getOwner().getUniqueId().equals(player.getUniqueId());
+            if(validateCondition(playerIsNotPartyOwner, player, ConfigHolder.Msg.ONLY_ACCESSIBLE_BY_OWNER))
+                return;
+
+            boolean futureOwnerIsNotParticipant = !party.isActive(futureOwner);
+            if(validateCondition(futureOwnerIsNotParticipant, player, ConfigHolder.Msg.PLAYER_NOT_PARTICIPANT))
+                return;
+
+            party.changeOwnership(futureOwner);
+
+            party.getActiveParticipants().forEach(p ->
+                    p.sendMessage(TextComponent.fromLegacyText(ConfigHolder.Msg.PARTY_OWNERSHIP_CHANGE.replace("%p", futureOwner.getName()))));
         }
 
         if(args.length == 1 && args[0].equalsIgnoreCase("disband")) {

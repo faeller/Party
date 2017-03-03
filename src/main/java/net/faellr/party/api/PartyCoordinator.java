@@ -1,7 +1,5 @@
 package net.faellr.party.api;
 
-import net.faellr.party.api.exceptions.NotOwnerException;
-
 /**
  * Singleton coordinating the usage of {@link Party} instances and other related party functionality
  *
@@ -20,9 +18,8 @@ public interface PartyCoordinator<P> {
      * Deletes a party by removing all mappings and destroying its instance
      *
      * @param owner the party's initiator
-     * @throws NotOwnerException - when {@param owner} is not the owner of the party he is in
      */
-    void disbandParty(P owner) throws NotOwnerException;
+    void disbandParty(P owner);
 
     /**
      * @return the {@link Party} instance the {@param activeParticipant} is in

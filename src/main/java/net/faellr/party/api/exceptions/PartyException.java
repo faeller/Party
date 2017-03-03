@@ -1,6 +1,6 @@
 package net.faellr.party.api.exceptions;
 
-public class PartyException extends Exception {
+public class PartyException extends RuntimeException {
     public PartyException(String message) {
         super(message);
     }
